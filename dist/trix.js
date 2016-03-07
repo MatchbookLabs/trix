@@ -8218,13 +8218,16 @@ window.CustomElements.addModule(function(scope) {
     Composition.prototype.breakFormattedBlock = function() {
       var block, document, index, newDocument, offset, position, range, ref;
       position = this.getPosition();
-      range = [position - 1, position];
+      range = [position, position];
       document = this.document;
       ref = document.locationFromPosition(position), index = ref.index, offset = ref.offset;
       block = document.getBlockAtIndex(index);
       if (block.getBlockBreakPosition() === offset) {
-        document = document.removeTextAtRange(range);
-        range = [position, position];
+        if (block.text.getStringAtRange([offset - 1, offset]) === "\n") {
+          document = document.removeTextAtRange([position - 1, position]);
+        } else if (offset - 1 !== 0) {
+          position += 1;
+        }
       } else {
         if (block.text.getStringAtRange([offset, offset + 1]) === "\n") {
           range = [position - 1, position + 1];
