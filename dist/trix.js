@@ -8273,7 +8273,7 @@ window.CustomElements.addModule(function(scope) {
           }
         }
       } else {
-        return this.insertBlockBreak();
+        return this.insertString("\n");
       }
     };
 

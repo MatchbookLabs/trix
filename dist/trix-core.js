@@ -7054,7 +7054,7 @@ http://trix-editor.org/
           }
         }
       } else {
-        return this.insertBlockBreak();
+        return this.insertString("\n");
       }
     };
 
