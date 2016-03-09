@@ -7,10 +7,11 @@ class Trix.Block extends Trix.Object
     text = Trix.Text.fromJSON(blockJSON.text)
     new this text, blockJSON.attributes
 
-  constructor: (text = new Trix.Text, attributes = []) ->
+  constructor: (text = new Trix.Text, attributes = [], alignment = 'left') ->
     super
     @text = applyBlockBreakToText(text)
     @attributes = attributes
+    @alignment = alignment
 
   isEmpty: ->
     @text.isBlockBreak()
@@ -22,13 +23,13 @@ class Trix.Block extends Trix.Object
     )
 
   copyWithText: (text) ->
-    new @constructor text, @attributes
+    new @constructor text, @attributes, @alignment
 
   copyWithoutText: ->
     @copyWithText(null)
 
   copyWithAttributes: (attributes) ->
-    new @constructor @text, attributes
+    new @constructor @text, attributes, @aligment
 
   copyUsingObjectMap: (objectMap) ->
     if mappedText = objectMap.find(@text)
@@ -67,6 +68,9 @@ class Trix.Block extends Trix.Object
 
   hasAttributes: ->
     @getAttributeLevel() > 0
+
+  getAlignment: ->
+    @alignment
 
   getConfig: (key) ->
     return unless attribute = @getLastAttribute()

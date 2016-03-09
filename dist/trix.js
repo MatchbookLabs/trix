@@ -1224,6 +1224,63 @@ window.CustomElements.addModule(function(scope) {
     window.addEventListener(loadEvent, bootstrap);
   }
 })(window.CustomElements);
+(function () {
+  var forEach = [].forEach,
+      regex = /^data-(.+)/,
+      dashChar = /\-([a-z])/ig,
+      el = document.createElement('div'),
+      mutationSupported = false,
+      match
+  ;
+
+  function detectMutation() {
+    mutationSupported = true;
+    this.removeEventListener('DOMAttrModified', detectMutation, false);
+  }
+
+  function toCamelCase(s) {
+    return s.replace(dashChar, function (m,l) { return l.toUpperCase(); });
+  }
+
+  function updateDataset() {
+    var dataset = {};
+    forEach.call(this.attributes, function(attr) {
+      if (match = attr.name.match(regex))
+        dataset[toCamelCase(match[1])] = attr.value;
+    });
+    return dataset;
+  }
+
+  // only add support if the browser doesn't support data-* natively
+  if (el.dataset != undefined) return;
+
+  el.addEventListener('DOMAttrModified', detectMutation, false);
+  el.setAttribute('foo', 'bar');
+
+  function defineElementGetter (obj, prop, getter) {
+    if (Object.defineProperty) {
+        Object.defineProperty(obj, prop,{
+            get : getter
+        });
+    } else {
+        obj.__defineGetter__(prop, getter);
+    }
+  }
+
+  defineElementGetter(Element.prototype, 'dataset', mutationSupported
+    ? function () {
+      if (!this._datasetCache) {
+        this._datasetCache = updateDataset.call(this);
+      }
+      return this._datasetCache;
+    }
+    : updateDataset
+  );
+
+  document.addEventListener('DOMAttrModified', function (event) {
+    delete event.target._datasetCache;
+  }, false);
+})();
 (function() {
 
 
@@ -2584,24 +2641,6 @@ window.CustomElements.addModule(function(scope) {
     "default": {
       tagName: "div",
       parse: false
-    },
-    h1: {
-      singleLine: true
-    },
-    h2: {
-      singleLine: true
-    },
-    h3: {
-      singleLine: true
-    },
-    h4: {
-      singleLine: true
-    },
-    h5: {
-      singleLine: true
-    },
-    h6: {
-      singleLine: true
     },
     quote: {
       tagName: "blockquote",
@@ -4747,7 +4786,9 @@ window.CustomElements.addModule(function(scope) {
       if (this.attributes.length) {
         return nodes;
       } else {
-        element = makeElement(Trix.config.blockAttributes["default"].tagName);
+        element = makeElement(Trix.config.blockAttributes["default"].tagName, {
+          className: this.getClassName()
+        });
         for (i = 0, len = nodes.length; i < len; i++) {
           node = nodes[i];
           element.appendChild(node);
@@ -4760,7 +4801,13 @@ window.CustomElements.addModule(function(scope) {
       var attribute, config;
       attribute = this.attributes[depth];
       config = Trix.config.blockAttributes[attribute];
-      return makeElement(config.tagName);
+      return makeElement(config.tagName, {
+        className: this.getClassName()
+      });
+    };
+
+    BlockView.prototype.getClassName = function() {
+      return this.block.alignment;
     };
 
     BlockView.prototype.shouldAddExtraNewlineElement = function() {
@@ -6587,16 +6634,20 @@ window.CustomElements.addModule(function(scope) {
       return new this(text, blockJSON.attributes);
     };
 
-    function Block(text, attributes) {
+    function Block(text, attributes, alignment) {
       if (text == null) {
         text = new Trix.Text;
       }
       if (attributes == null) {
         attributes = [];
       }
+      if (alignment == null) {
+        alignment = 'left';
+      }
       Block.__super__.constructor.apply(this, arguments);
       this.text = applyBlockBreakToText(text);
       this.attributes = attributes;
+      this.alignment = alignment;
     }
 
     Block.prototype.isEmpty = function() {
@@ -6608,7 +6659,7 @@ window.CustomElements.addModule(function(scope) {
     };
 
     Block.prototype.copyWithText = function(text) {
-      return new this.constructor(text, this.attributes);
+      return new this.constructor(text, this.attributes, this.alignment);
     };
 
     Block.prototype.copyWithoutText = function() {
@@ -6616,7 +6667,7 @@ window.CustomElements.addModule(function(scope) {
     };
 
     Block.prototype.copyWithAttributes = function(attributes) {
-      return new this.constructor(this.text, attributes);
+      return new this.constructor(this.text, attributes, this.aligment);
     };
 
     Block.prototype.copyUsingObjectMap = function(objectMap) {
@@ -6669,6 +6720,10 @@ window.CustomElements.addModule(function(scope) {
       return this.getAttributeLevel() > 0;
     };
 
+    Block.prototype.getAlignment = function() {
+      return this.alignment;
+    };
+
     Block.prototype.getConfig = function(key) {
       var attribute, config;
       if (!(attribute = this.getLastAttribute())) {
@@ -6682,10 +6737,6 @@ window.CustomElements.addModule(function(scope) {
       } else {
         return config;
       }
-    };
-
-    Block.prototype.isSingleLine = function() {
-      return this.getConfig("singleLine") != null;
     };
 
     Block.prototype.isListItem = function() {
@@ -8218,16 +8269,13 @@ window.CustomElements.addModule(function(scope) {
     Composition.prototype.breakFormattedBlock = function() {
       var block, document, index, newDocument, offset, position, range, ref;
       position = this.getPosition();
-      range = [position, position];
+      range = [position - 1, position];
       document = this.document;
       ref = document.locationFromPosition(position), index = ref.index, offset = ref.offset;
       block = document.getBlockAtIndex(index);
       if (block.getBlockBreakPosition() === offset) {
-        if (block.text.getStringAtRange([offset - 1, offset]) === "\n") {
-          document = document.removeTextAtRange([position - 1, position]);
-        } else if (offset - 1 !== 0) {
-          position += 1;
-        }
+        document = document.removeTextAtRange(range);
+        range = [position, position];
       } else {
         if (block.text.getStringAtRange([offset, offset + 1]) === "\n") {
           range = [position - 1, position + 1];
@@ -8247,13 +8295,7 @@ window.CustomElements.addModule(function(scope) {
       endLocation = this.document.locationFromPosition(endPosition);
       block = this.document.getBlockAtIndex(endLocation.index);
       if (block.hasAttributes()) {
-        if (block.getConfig("singleLine") != null) {
-          if (block.isEmpty()) {
-            return this.removeLastBlockAttribute();
-          } else {
-            return this.breakFormattedBlock();
-          }
-        } else if (block.isListItem()) {
+        if (block.isListItem()) {
           if (block.isEmpty()) {
             this.decreaseListLevel();
             return this.setSelection(startPosition);
@@ -8537,6 +8579,17 @@ window.CustomElements.addModule(function(scope) {
     Composition.prototype.canDecreaseBlockAttributeLevel = function() {
       var ref;
       return ((ref = this.getBlock()) != null ? ref.getAttributeLevel() : void 0) > 0;
+    };
+
+    Composition.prototype.toggleAlignment = function() {
+      var alignments, block, index;
+      if (!(block = this.getBlock())) {
+        return;
+      }
+      alignments = ['left', 'center', 'right'];
+      index = block.alignment.indexOf(block.alignment);
+      index = (index + 1) % 3;
+      return block.alignment = alignments[index];
     };
 
     Composition.prototype.updateCurrentAttributes = function() {
@@ -9051,6 +9104,10 @@ window.CustomElements.addModule(function(scope) {
       if (this.canIncreaseIndentationLevel()) {
         return this.composition.increaseBlockAttributeLevel();
       }
+    };
+
+    Editor.prototype.toggleAlignment = function() {
+      return this.composition.toggleBlockAlignment();
     };
 
     Editor.prototype.canRedo = function() {
@@ -10165,6 +10222,14 @@ window.CustomElements.addModule(function(scope) {
         },
         perform: function() {
           return this.editor.decreaseIndentationLevel() && this.render();
+        }
+      },
+      toggleAlignment: {
+        test: function() {
+          return true;
+        },
+        perform: function() {
+          return this.editor.toggleAlignment() && this.render();
         }
       }
     };

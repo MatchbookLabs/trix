@@ -1366,24 +1366,6 @@ http://trix-editor.org/
       tagName: "div",
       parse: false
     },
-    h1: {
-      singleLine: true
-    },
-    h2: {
-      singleLine: true
-    },
-    h3: {
-      singleLine: true
-    },
-    h4: {
-      singleLine: true
-    },
-    h5: {
-      singleLine: true
-    },
-    h6: {
-      singleLine: true
-    },
     quote: {
       tagName: "blockquote",
       nestable: true
@@ -3528,7 +3510,9 @@ http://trix-editor.org/
       if (this.attributes.length) {
         return nodes;
       } else {
-        element = makeElement(Trix.config.blockAttributes["default"].tagName);
+        element = makeElement(Trix.config.blockAttributes["default"].tagName, {
+          className: this.getClassName()
+        });
         for (i = 0, len = nodes.length; i < len; i++) {
           node = nodes[i];
           element.appendChild(node);
@@ -3541,7 +3525,13 @@ http://trix-editor.org/
       var attribute, config;
       attribute = this.attributes[depth];
       config = Trix.config.blockAttributes[attribute];
-      return makeElement(config.tagName);
+      return makeElement(config.tagName, {
+        className: this.getClassName()
+      });
+    };
+
+    BlockView.prototype.getClassName = function() {
+      return this.block.alignment;
     };
 
     BlockView.prototype.shouldAddExtraNewlineElement = function() {
@@ -5368,16 +5358,20 @@ http://trix-editor.org/
       return new this(text, blockJSON.attributes);
     };
 
-    function Block(text, attributes) {
+    function Block(text, attributes, alignment) {
       if (text == null) {
         text = new Trix.Text;
       }
       if (attributes == null) {
         attributes = [];
       }
+      if (alignment == null) {
+        alignment = 'left';
+      }
       Block.__super__.constructor.apply(this, arguments);
       this.text = applyBlockBreakToText(text);
       this.attributes = attributes;
+      this.alignment = alignment;
     }
 
     Block.prototype.isEmpty = function() {
@@ -5389,7 +5383,7 @@ http://trix-editor.org/
     };
 
     Block.prototype.copyWithText = function(text) {
-      return new this.constructor(text, this.attributes);
+      return new this.constructor(text, this.attributes, this.alignment);
     };
 
     Block.prototype.copyWithoutText = function() {
@@ -5397,7 +5391,7 @@ http://trix-editor.org/
     };
 
     Block.prototype.copyWithAttributes = function(attributes) {
-      return new this.constructor(this.text, attributes);
+      return new this.constructor(this.text, attributes, this.aligment);
     };
 
     Block.prototype.copyUsingObjectMap = function(objectMap) {
@@ -5450,6 +5444,10 @@ http://trix-editor.org/
       return this.getAttributeLevel() > 0;
     };
 
+    Block.prototype.getAlignment = function() {
+      return this.alignment;
+    };
+
     Block.prototype.getConfig = function(key) {
       var attribute, config;
       if (!(attribute = this.getLastAttribute())) {
@@ -5463,10 +5461,6 @@ http://trix-editor.org/
       } else {
         return config;
       }
-    };
-
-    Block.prototype.isSingleLine = function() {
-      return this.getConfig("singleLine") != null;
     };
 
     Block.prototype.isListItem = function() {
@@ -6999,16 +6993,13 @@ http://trix-editor.org/
     Composition.prototype.breakFormattedBlock = function() {
       var block, document, index, newDocument, offset, position, range, ref;
       position = this.getPosition();
-      range = [position, position];
+      range = [position - 1, position];
       document = this.document;
       ref = document.locationFromPosition(position), index = ref.index, offset = ref.offset;
       block = document.getBlockAtIndex(index);
       if (block.getBlockBreakPosition() === offset) {
-        if (block.text.getStringAtRange([offset - 1, offset]) === "\n") {
-          document = document.removeTextAtRange([position - 1, position]);
-        } else if (offset - 1 !== 0) {
-          position += 1;
-        }
+        document = document.removeTextAtRange(range);
+        range = [position, position];
       } else {
         if (block.text.getStringAtRange([offset, offset + 1]) === "\n") {
           range = [position - 1, position + 1];
@@ -7028,13 +7019,7 @@ http://trix-editor.org/
       endLocation = this.document.locationFromPosition(endPosition);
       block = this.document.getBlockAtIndex(endLocation.index);
       if (block.hasAttributes()) {
-        if (block.getConfig("singleLine") != null) {
-          if (block.isEmpty()) {
-            return this.removeLastBlockAttribute();
-          } else {
-            return this.breakFormattedBlock();
-          }
-        } else if (block.isListItem()) {
+        if (block.isListItem()) {
           if (block.isEmpty()) {
             this.decreaseListLevel();
             return this.setSelection(startPosition);
@@ -7318,6 +7303,17 @@ http://trix-editor.org/
     Composition.prototype.canDecreaseBlockAttributeLevel = function() {
       var ref;
       return ((ref = this.getBlock()) != null ? ref.getAttributeLevel() : void 0) > 0;
+    };
+
+    Composition.prototype.toggleAlignment = function() {
+      var alignments, block, index;
+      if (!(block = this.getBlock())) {
+        return;
+      }
+      alignments = ['left', 'center', 'right'];
+      index = block.alignment.indexOf(block.alignment);
+      index = (index + 1) % 3;
+      return block.alignment = alignments[index];
     };
 
     Composition.prototype.updateCurrentAttributes = function() {
@@ -7832,6 +7828,10 @@ http://trix-editor.org/
       if (this.canIncreaseIndentationLevel()) {
         return this.composition.increaseBlockAttributeLevel();
       }
+    };
+
+    Editor.prototype.toggleAlignment = function() {
+      return this.composition.toggleBlockAlignment();
     };
 
     Editor.prototype.canRedo = function() {
@@ -8946,6 +8946,14 @@ http://trix-editor.org/
         },
         perform: function() {
           return this.editor.decreaseIndentationLevel() && this.render();
+        }
+      },
+      toggleAlignment: {
+        test: function() {
+          return true;
+        },
+        perform: function() {
+          return this.editor.toggleAlignment() && this.render();
         }
       }
     };

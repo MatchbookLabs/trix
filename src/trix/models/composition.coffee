@@ -299,6 +299,13 @@ class Trix.Composition extends Trix.BasicObject
   canDecreaseBlockAttributeLevel: ->
     @getBlock()?.getAttributeLevel() > 0
 
+  toggleBlockAlignment: ->
+    return unless block = @getBlock()
+    alignments = ['left', 'center', 'right']
+    index = block.alignment.indexOf(block.alignment)
+    index = (index + 1) % 3
+    block.alignment = alignments[index]
+
   updateCurrentAttributes: ->
     if selectedRange = @getSelectedRange(ignoreLock: true)
       commonAttributes = @document.getCommonAttributesAtRange(selectedRange)
