@@ -73,9 +73,6 @@ class Trix.Block extends Trix.Object
     return unless config = Trix.config.blockAttributes[attribute]
     if key then config[key] else config
 
-  isSingleLine: ->
-    @getConfig("singleLine")?
-
   isListItem: ->
     @getConfig("listAttribute")?
 
