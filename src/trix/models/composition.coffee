@@ -71,17 +71,15 @@ class Trix.Composition extends Trix.BasicObject
 
   breakFormattedBlock: ->
     position = @getPosition()
-    range = [position, position]
+    range = [position - 1, position]
 
     document = @document
     {index, offset} = document.locationFromPosition(position)
     block = document.getBlockAtIndex(index)
 
     if block.getBlockBreakPosition() is offset
-      if block.text.getStringAtRange([offset-1, offset]) is "\n"
-        document = document.removeTextAtRange([position-1, position])
-      else if offset - 1 isnt 0
-        position += 1
+      document = document.removeTextAtRange(range)
+      range = [position, position]
     else
       if block.text.getStringAtRange([offset, offset + 1]) is "\n"
         range = [position - 1, position + 1]
