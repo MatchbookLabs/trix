@@ -1,6 +1,6 @@
 Trix.config.blockAttributes = attributes =
   default:
-    tagName: "div"
+    tagName: "gf-p"
     parse: false
   quote:
     tagName: "blockquote"
@@ -25,3 +25,8 @@ Trix.config.blockAttributes = attributes =
     listAttribute: "numberList"
     test: (element) ->
       Trix.tagName(element.parentNode) is attributes[@listAttribute].tagName
+  big:
+    tagName: "h1"
+    singleLine: true
+  small:
+    tagName: "h5"
