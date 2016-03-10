@@ -1363,40 +1363,57 @@ http://trix-editor.org/
 
   Trix.config.blockAttributes = attributes = {
     "default": {
-      tagName: "div",
+      tagName: "gf-p",
+      leaf: true,
       parse: false
     },
     quote: {
       tagName: "blockquote",
-      nestable: true
+      nestable: true,
+      groupable: true
     },
     code: {
       tagName: "pre",
       text: {
         plaintext: true
-      }
+      },
+      groupable: true
     },
     bulletList: {
       tagName: "ul",
-      parse: false
+      parse: false,
+      groupable: true
     },
     bullet: {
       tagName: "li",
       listAttribute: "bulletList",
       test: function(element) {
         return Trix.tagName(element.parentNode) === attributes[this.listAttribute].tagName;
-      }
+      },
+      groupable: true
     },
     numberList: {
       tagName: "ol",
-      parse: false
+      parse: false,
+      groupable: true
     },
     number: {
       tagName: "li",
       listAttribute: "numberList",
       test: function(element) {
         return Trix.tagName(element.parentNode) === attributes[this.listAttribute].tagName;
-      }
+      },
+      groupable: true
+    },
+    big: {
+      tagName: "h1",
+      inheritable: true,
+      leaf: true
+    },
+    small: {
+      tagName: "h5",
+      inheritable: true,
+      leaf: true
     }
   };
 
@@ -1580,7 +1597,7 @@ http://trix-editor.org/
   lang = Trix.config.lang;
 
   Trix.config.toolbar = {
-    content: makeFragment("<div class=\"button_groups\">\n  <span class=\"button_group text_tools\">\n    <button type=\"button\" class=\"bold\" data-attribute=\"bold\" data-key=\"b\" title=\"" + lang.bold + "\">" + lang.bold + "</button>\n    <button type=\"button\" class=\"italic\" data-attribute=\"italic\" data-key=\"i\" title=\"" + lang.italic + "\">" + lang.italic + "</button>\n    <button type=\"button\" class=\"strike\" data-attribute=\"strike\" title=\"" + lang.strike + "\">" + lang.strike + "</button>\n    <button type=\"button\" class=\"link\" data-attribute=\"href\" data-action=\"link\" data-key=\"k\" title=\"" + lang.link + "\">" + lang.link + "</button>\n  </span>\n\n  <span class=\"button_group block_tools\">\n    <button type=\"button\" class=\"quote\" data-attribute=\"quote\" title=\"" + lang.quote + "\">" + lang.quote + "</button>\n    <button type=\"button\" class=\"code\" data-attribute=\"code\" title=\"" + lang.code + "\">" + lang.code + "</button>\n    <button type=\"button\" class=\"list bullets\" data-attribute=\"bullet\" title=\"" + lang.bullets + "\">" + lang.bullets + "</button>\n    <button type=\"button\" class=\"list numbers\" data-attribute=\"number\" title=\"" + lang.numbers + "\">" + lang.numbers + "</button>\n    <button type=\"button\" class=\"block-level decrease\" data-action=\"decreaseBlockLevel\" title=\"" + lang.outdent + "\">" + lang.outdent + "</button>\n    <button type=\"button\" class=\"block-level increase\" data-action=\"increaseBlockLevel\" title=\"" + lang.indent + "\">" + lang.indent + "</button>\n  </span>\n\n  <span class=\"button_group history_tools\">\n    <button type=\"button\" class=\"undo\" data-action=\"undo\" data-key=\"z\" title=\"" + lang.undo + "\">" + lang.undo + "</button>\n    <button type=\"button\" class=\"redo\" data-action=\"redo\" data-key=\"shift+z\" title=\"" + lang.redo + "\">" + lang.redo + "</button>\n  </span>\n</div>\n\n<div class=\"dialogs\">\n  <div class=\"dialog link_dialog\" data-attribute=\"href\" data-dialog=\"href\">\n    <div class=\"link_url_fields\">\n      <input type=\"url\" required name=\"href\" placeholder=\"" + lang.urlPlaceholder + "\">\n      <div class=\"button_group\">\n        <input type=\"button\" value=\"" + lang.link + "\" data-method=\"setAttribute\">\n        <input type=\"button\" value=\"" + lang.unlink + "\" data-method=\"removeAttribute\">\n      </div>\n    </div>\n  </div>\n</div>")
+    content: makeFragment("<div class=\"button_groups\">\n  <span class=\"button_group text_tools\">\n    <button type=\"button\" class=\"bold\" data-attribute=\"bold\" data-key=\"b\" title=\"" + lang.bold + "\">" + lang.bold + "</button>\n    <button type=\"button\" class=\"italic\" data-attribute=\"italic\" data-key=\"i\" title=\"" + lang.italic + "\">" + lang.italic + "</button>\n    <button type=\"button\" class=\"strike\" data-attribute=\"strike\" title=\"" + lang.strike + "\">" + lang.strike + "</button>\n    <button type=\"button\" class=\"link\" data-attribute=\"href\" data-action=\"link\" data-key=\"k\" title=\"" + lang.link + "\">" + lang.link + "</button>\n  </span>\n\n  <span class=\"button_group block_tools\">\n    <button type=\"button\" data-attribute=\"big\" title=\"Big\">B</button>\n    <button type=\"button\" data-attribute=\"small\" title=\"Small\"\">S</button>\n    <button type=\"button\" data-action=\"toggleAlignment\">A</button>\n\n    <button type=\"button\" class=\"quote\" data-attribute=\"quote\" title=\"" + lang.quote + "\">" + lang.quote + "</button>\n    <button type=\"button\" class=\"quote\" data-attribute=\"quote\" title=\"" + lang.quote + "\">" + lang.quote + "</button>\n    <button type=\"button\" class=\"code\" data-attribute=\"code\" title=\"" + lang.code + "\">" + lang.code + "</button>\n    <button type=\"button\" class=\"list bullets\" data-attribute=\"bullet\" title=\"" + lang.bullets + "\">" + lang.bullets + "</button>\n    <button type=\"button\" class=\"list numbers\" data-attribute=\"number\" title=\"" + lang.numbers + "\">" + lang.numbers + "</button>\n    <button type=\"button\" class=\"block-level decrease\" data-action=\"decreaseBlockLevel\" title=\"" + lang.outdent + "\">" + lang.outdent + "</button>\n    <button type=\"button\" class=\"block-level increase\" data-action=\"increaseBlockLevel\" title=\"" + lang.indent + "\">" + lang.indent + "</button>\n  </span>\n\n  <span class=\"button_group history_tools\">\n    <button type=\"button\" class=\"undo\" data-action=\"undo\" data-key=\"z\" title=\"" + lang.undo + "\">" + lang.undo + "</button>\n    <button type=\"button\" class=\"redo\" data-action=\"redo\" data-key=\"shift+z\" title=\"" + lang.redo + "\">" + lang.redo + "</button>\n  </span>\n</div>\n\n<div class=\"dialogs\">\n  <div class=\"dialog link_dialog\" data-attribute=\"href\" data-dialog=\"href\">\n    <div class=\"link_url_fields\">\n      <input type=\"url\" required name=\"href\" placeholder=\"" + lang.urlPlaceholder + "\">\n      <div class=\"button_group\">\n        <input type=\"button\" value=\"" + lang.link + "\" data-method=\"setAttribute\">\n        <input type=\"button\" value=\"" + lang.unlink + "\" data-method=\"removeAttribute\">\n      </div>\n    </div>\n  </div>\n</div>")
   };
 
 }).call(this);
@@ -3508,17 +3525,17 @@ http://trix-editor.org/
         }
       }
       if (this.attributes.length) {
-        return nodes;
+        element = this.createContainerElement(0);
       } else {
         element = makeElement(Trix.config.blockAttributes["default"].tagName, {
           className: this.getClassName()
         });
-        for (i = 0, len = nodes.length; i < len; i++) {
-          node = nodes[i];
-          element.appendChild(node);
-        }
-        return [element];
       }
+      for (i = 0, len = nodes.length; i < len; i++) {
+        node = nodes[i];
+        element.appendChild(node);
+      }
+      return [element];
     };
 
     BlockView.prototype.createContainerElement = function(depth) {
@@ -5544,7 +5561,11 @@ http://trix-editor.org/
     };
 
     Block.prototype.canBeGrouped = function(depth) {
-      return this.attributes[depth];
+      var attribute, ref;
+      if (!(attribute = this.attributes[depth])) {
+        return;
+      }
+      return (ref = Trix.config.blockAttributes[attribute]) != null ? ref.groupable : void 0;
     };
 
     Block.prototype.canBeGroupedWith = function(otherBlock, depth) {
@@ -7305,7 +7326,7 @@ http://trix-editor.org/
       return ((ref = this.getBlock()) != null ? ref.getAttributeLevel() : void 0) > 0;
     };
 
-    Composition.prototype.toggleAlignment = function() {
+    Composition.prototype.toggleBlockAlignment = function() {
       var alignments, block, index;
       if (!(block = this.getBlock())) {
         return;
