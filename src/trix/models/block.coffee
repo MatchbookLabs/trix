@@ -138,7 +138,8 @@ class Trix.Block extends Trix.Object
   # Grouping
 
   canBeGrouped: (depth) ->
-    @attributes[depth]
+    return unless attribute = @attributes[depth]
+    Trix.config.blockAttributes[attribute]?.groupable
 
   canBeGroupedWith: (otherBlock, depth) ->
     attributes = @attributes
