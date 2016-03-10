@@ -1,6 +1,7 @@
 Trix.config.blockAttributes = attributes =
   default:
-    tagName: "div"
+    tagName: "gf-p"
+    leaf: true
     parse: false
   quote:
     tagName: "blockquote"
@@ -31,3 +32,12 @@ Trix.config.blockAttributes = attributes =
     test: (element) ->
       Trix.tagName(element.parentNode) is attributes[@listAttribute].tagName
     groupable: true
+
+  big:
+    tagName: "h1"
+    inheritable: true
+    leaf: true
+  small:
+    tagName: "h5"
+    inheritable: true
+    leaf: true
