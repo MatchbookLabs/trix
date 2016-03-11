@@ -242,6 +242,7 @@ class Trix.Composition extends Trix.BasicObject
       @setDocument(@document.addAttributeAtRange(attributeName, value, selectedRange))
 
   setBlockAttribute: (attributeName, value) ->
+    @removeLastBlockAttribute() if @getBlock()?.getConfig("leaf")
     return unless selectedRange = @getSelectedRange()
     @setDocument(@document.applyBlockAttributeAtRange(attributeName, value, selectedRange))
     @setSelection(selectedRange)
@@ -297,6 +298,13 @@ class Trix.Composition extends Trix.BasicObject
 
   canDecreaseBlockAttributeLevel: ->
     @getBlock()?.getAttributeLevel() > 0
+
+  toggleBlockAlignment: ->
+    return unless block = @getBlock()
+    alignments = ['left', 'center', 'right']
+    index = block.alignment.indexOf(block.alignment)
+    index = (index + 1) % 3
+    block.alignment = alignments[index]
 
   updateCurrentAttributes: ->
     if selectedRange = @getSelectedRange(ignoreLock: true)

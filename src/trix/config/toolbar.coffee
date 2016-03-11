@@ -12,6 +12,11 @@ Trix.config.toolbar =
       </span>
 
       <span class="button_group block_tools">
+        <button type="button" data-attribute="big" title="Big">B</button>
+        <button type="button" data-attribute="small" title="Small"">S</button>
+        <button type="button" data-action="toggleAlignment">A</button>
+
+        <button type="button" class="quote" data-attribute="quote" title="#{lang.quote}">#{lang.quote}</button>
         <button type="button" class="quote" data-attribute="quote" title="#{lang.quote}">#{lang.quote}</button>
         <button type="button" class="code" data-attribute="code" title="#{lang.code}">#{lang.code}</button>
         <button type="button" class="list bullets" data-attribute="bullet" title="#{lang.bullets}">#{lang.bullets}</button>

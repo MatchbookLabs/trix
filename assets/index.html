@@ -10,6 +10,11 @@
         width: 500px;
         margin-bottom: 100px;
       }
+      gf-p, h1, h5 {
+        display: block;
+        margin: 0;
+        padding: 0;
+      }
     </style>
     <script type="text/javascript" src="trix.js"></script>
     <script type="text/javascript" src="trix/inspector.js"></script>
@@ -24,7 +29,8 @@
     </script>
   </head>
   <body>
-    <trix-editor autofocus class="trix-content"></trix-editor>
+    <input type="hidden" value="<gf-p>Hello</gf-p><gf-p>World</gf-p><h1>Hello</h1><h1>World</h1>" id="trix-input"></input>
+    <trix-editor autofocus class="trix-content" input="trix-input"></trix-editor>
 
     <div id="formatted-content" class="trix-content"></div>
   </body>
