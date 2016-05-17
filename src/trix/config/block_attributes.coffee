@@ -30,3 +30,18 @@ Trix.config.blockAttributes = attributes =
     singleLine: true
   small:
     tagName: "h5"
+  leftAligned:
+    composed: true
+    test: (element) ->
+      style = window.getComputedStyle(element)
+      style["textAlign"] is "left"
+  centerAligned:
+    composed: true
+    test: (element) ->
+      style = window.getComputedStyle(element)
+      style["textAlign"] is "center"
+  rightAligned:
+    composed: true
+    test: (element) ->
+      style = window.getComputedStyle(element)
+      style["textAlign"] is "right"

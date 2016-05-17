@@ -107,6 +107,11 @@ class Trix.Editor
     if @canIncreaseIndentationLevel()
       @composition.increaseBlockAttributeLevel()
 
+  # Alignment
+
+  toggleAlignment: ->
+    @composition.toggleBlockAlignment()
+
   # Undo/redo
 
   canRedo: ->
